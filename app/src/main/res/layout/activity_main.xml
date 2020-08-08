@@ -60,4 +60,24 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonStart"
         tools:text="Log" />
 
+    <Button
+        android:id="@+id/buttonStartSeveral"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Start Several Jobs"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logView" />
+
+    <Button
+        android:id="@+id/buttonCancelAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Cancel All"
+        app:layout_constraintStart_toEndOf="@+id/buttonStartSeveral"
+        app:layout_constraintTop_toBottomOf="@+id/logView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

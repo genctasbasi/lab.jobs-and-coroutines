@@ -1,6 +1,7 @@
 package com.escmobile.lab.jobsandcoroutines
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
@@ -8,10 +9,14 @@ import kotlinx.coroutines.*
 const val JOB_TIME = 5000
 const val PROGRESS_MIN: Int = 0
 const val PROGRESS_MAX: Int = JOB_TIME
+const val TAG = "J&C"
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var job1: CompletableJob
+
+    private lateinit var parentJob: Job
+    private lateinit var parentJobPassed: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +32,6 @@ class MainActivity : AppCompatActivity() {
         progressBar.progress = PROGRESS_MIN
 
         buttonStart.setOnClickListener {
-
             GlobalScope.launch {
                 doJob1()
                 log(jobState())
@@ -37,6 +41,28 @@ class MainActivity : AppCompatActivity() {
         buttonCancel.setOnClickListener {
             log(jobState())
             job1.cancel(CancellationException("Cancelled by the user."))
+        }
+
+        buttonStartSeveral.setOnClickListener {
+
+            parentJobPassed = Job()
+
+            // TODO: What's the difference between parentJob and parentJobPassed here, in terms of the functionality
+            parentJob = CoroutineScope(Dispatchers.Default + parentJobPassed).launch {
+
+                val childJob = launch {
+                    for (index in 0..1000) {
+                        someCPUHeavyWork(index)
+                    }
+                }
+            }
+        }
+
+        buttonCancelAll.setOnClickListener {
+            if (::parentJob.isInitialized) {
+                // both parentJob and parentJobPassed cancellation works
+                parentJob.cancel(CancellationException("Cancelled by user"))
+            }
         }
     }
 
@@ -64,6 +90,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun someCPUHeavyWork(workNo: Int) {
+        delay(1000)
+        Log.d(TAG, "Work $workNo is done on ${Thread.currentThread().name}")
+    }
+
     private fun Job.state(): String = when {
         isActive -> "Active / Completing"
         isCompleted && isCancelled -> "Cancelled"
@@ -72,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         else -> "New"
     }
 
-    private fun jobState() = "Job state: ${job1.state()}"
+    private fun jobState(job: Job? = null) = "Job state: ${job ?: job1.state()}"
 
     private fun log(message: String) {
         GlobalScope.launch(Dispatchers.Main) {
