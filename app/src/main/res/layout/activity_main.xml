@@ -54,7 +54,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
-        android:lines="20"
+        android:lines="10"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonStart"
@@ -66,18 +66,29 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:text="Start Several Jobs"
+        android:text="Start 100 Jobs"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cancellingJobLabel" />
+
+    <TextView
+        android:id="@+id/cancellingJobLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="55dp"
+        android:layout_marginEnd="16dp"
+        android:text="Start 100 jobs and one of them will fail. Observe the parent job in the logs"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/logView" />
 
     <Button
-        android:id="@+id/buttonCancelAll"
+        android:id="@+id/cancelAChild"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="Cancel All"
+        android:text="Cancel a child Job"
         app:layout_constraintStart_toEndOf="@+id/buttonStartSeveral"
-        app:layout_constraintTop_toBottomOf="@+id/logView" />
+        app:layout_constraintTop_toTopOf="@+id/buttonStartSeveral" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

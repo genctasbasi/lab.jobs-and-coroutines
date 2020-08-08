@@ -16,7 +16,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var job1: CompletableJob
 
     private lateinit var parentJob: Job
-    private lateinit var parentJobPassed: Job
+
+    private val childJobs = mutableListOf<Job>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,24 +46,31 @@ class MainActivity : AppCompatActivity() {
 
         buttonStartSeveral.setOnClickListener {
 
-            parentJobPassed = Job()
+            // if initialized as supervisor, then cancelling a child job won't affect
+            // the rest of the children or the parent job.
+            // if initialized as a normal job, then cancelling a child job will cancel all children
+            // and the parent
+            parentJob = SupervisorJob() // or try parentJob = Job()
 
-            // TODO: What's the difference between parentJob and parentJobPassed here, in terms of the functionality
-            parentJob = CoroutineScope(Dispatchers.Default + parentJobPassed).launch {
+            val coroutineScope = CoroutineScope(Dispatchers.Default + parentJob + exceptionHandler)
 
-                val childJob = launch {
-                    for (index in 0..1000) {
-                        someCPUHeavyWork(index)
-                    }
+            for (index in 0..99) {
+
+                val childJob = coroutineScope.launch {
+                    // val childJob = Job(parentJob)
+                    someCPUHeavyWork(index)
                 }
+
+                childJobs.add(childJob)
             }
+
+            Log.d(TAG, "Completed creating child jobs: ${parentJob.children.count()} child jobs.")
         }
 
-        buttonCancelAll.setOnClickListener {
-            if (::parentJob.isInitialized) {
-                // both parentJob and parentJobPassed cancellation works
-                parentJob.cancel(CancellationException("Cancelled by user"))
-            }
+
+        cancelAChild.setOnClickListener {
+            Log.d(TAG, "Cancelling the job #10")
+            childJobs[10].cancel("Only the 10th job will be cancelled, siblings and the parent should be fine.")
         }
     }
 
@@ -73,6 +81,11 @@ class MainActivity : AppCompatActivity() {
         job1.invokeOnCompletion {
             log("Job1 completed. ${jobState()}. Exception: ${it?.message ?: "None"}")
         }
+
+    }
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.w(TAG, "Exception : $throwable")
     }
 
     private suspend fun doJob1() {
@@ -91,7 +104,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun someCPUHeavyWork(workNo: Int) {
-        delay(1000)
+
+        // Fake an exception in coroutine #25
+        // If our job is SupervisorJob(), then only the 25th job will be incomplete.
+        // If our job is just Job(), then all of the siblings / children should cancel.
+        if (workNo == 25) throw java.lang.IllegalArgumentException()
+        delay(2000)
         Log.d(TAG, "Work $workNo is done on ${Thread.currentThread().name}")
     }
 
@@ -103,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         else -> "New"
     }
 
-    private fun jobState(job: Job? = null) = "Job state: ${job ?: job1.state()}"
+    private fun jobState(job: Job? = null) = "Job state: ${(job ?: job1).state()}"
 
     private fun log(message: String) {
         GlobalScope.launch(Dispatchers.Main) {
